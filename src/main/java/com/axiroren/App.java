@@ -1,12 +1,13 @@
 package com.axiroren;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 import com.axiroren.TCP.*;
 import com.axiroren.UDP.*;
 
 public class App {
-    public static void main( String[] args ) {
+    public static void main( String[] args ) throws IOException {
         Scanner in = new Scanner(System.in);
 
         System.out.println("Simple TCP/UDP Chat App");

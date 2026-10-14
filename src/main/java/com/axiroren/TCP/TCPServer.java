@@ -13,26 +13,36 @@ public class TCPServer {
             System.out.println("Starting Server....... ");
             Socket socket = serverSocket.accept();
 
-            System.out.println("Client Connected : " + socket.getLocalAddress());
+            System.out.println("Client Connected : " + socket.getInetAddress());
 
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream(),true);
             BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
 
+            Thread reciever = new Thread(() -> {
+                String msg;
+                System.out.print("Enter msg : ");
+                try {
+                    while ((msg = in.readLine()) != null) {
+                        System.out.println("\nClient : " + msg);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            );
+
+            reciever.setDaemon(true);
+            reciever.start();
+
             while (true) {
-                String cliMsg = in.readLine();
-
-                if(cliMsg.equals("exit"))
-                    break;
-
-                System.out.println("You : " + cliMsg);
-
                 String msg = userIn.readLine();
-
-                out.println(msg);
 
                 if (msg.equals("exit")) 
                     break;
+
+                out.println(msg);
+                
             }
 
             socket.close();
