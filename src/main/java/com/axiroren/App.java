@@ -27,8 +27,6 @@ public class App {
             return;
         }
 
-        in.nextLine();
-
         switch (choice) {
             case 1 -> TCPServer.main(new String[]{});
             case 2 -> {
