@@ -4,14 +4,25 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Scanner;
+import java.util.concurrent.atomic.*;
 
 public class UDPClient {
 
     static final int PORT = 8088;
 
-    //static final String HOST = "localhost";
+    private static void stats(long messagesSent,long bytesSent, AtomicLong messagesReceived,AtomicLong bytesReceived){
+        System.out.println("Messages sent : " + messagesSent);
+        System.out.println("Messages received : " + messagesReceived.get());
+        System.out.println("Bytes sent : " + bytesSent);
+        System.out.println("Bytes received : " + bytesReceived.get());
+    }
 
     public static void main(String[] args) {
+
+        long messagesSent = 0;
+        AtomicLong messagesReceived = new AtomicLong();
+        long bytesSent = 0;
+        AtomicLong bytesReceived = new AtomicLong();
 
         Scanner in = new Scanner(System.in);
 
@@ -19,6 +30,10 @@ public class UDPClient {
         String host = in.nextLine();
 
         try (DatagramSocket socket = new DatagramSocket()) {
+
+        System.out.println("Type \"exit\" to Exit !");
+        System.out.println("Type /stats for statistics !");
+        System.out.println("Start Chatting !");
 
             int count = 1;
 
@@ -32,6 +47,8 @@ public class UDPClient {
                         DatagramPacket recievePacket = new DatagramPacket(recieve, recieve.length);
 
                         socket.receive(recievePacket);
+                        messagesReceived.incrementAndGet();
+                        bytesReceived.addAndGet(recievePacket.getLength());
 
                         String recieveMsg = new String(
                             recievePacket.getData(),
@@ -49,7 +66,7 @@ public class UDPClient {
 
                         String msg = recieveMsg.substring(end + 1).trim();
 
-                        if (msg.equals("exit"))
+                        if (msg.equalsIgnoreCase("exit"))
                             break;
 
                         System.out.println("\nServer " + "[SEQ " + seq + "] : " + msg);
@@ -65,10 +82,22 @@ public class UDPClient {
 
             while (true) {
 
-                System.out.print("Enter msg : ");
+                //System.out.print("Enter msg : ");
                 String msg = in.nextLine();
 
                 msg = "[SEQ " + (count++) + "] " + msg;
+
+                int end = msg.indexOf("]");
+
+                String newMsg = msg.substring(end + 1).trim();
+
+                if (newMsg.equals("/stats")) {
+                    stats(messagesSent, bytesSent, messagesReceived, bytesReceived);
+                    continue;
+                }
+
+                if (newMsg.equalsIgnoreCase("exit"))
+                    break;
 
                 byte[] sendBuffer = msg.getBytes(java.nio.charset.StandardCharsets.UTF_8);
 
@@ -80,11 +109,8 @@ public class UDPClient {
                 );
 
                 socket.send(sendPacket);
-
-                int end = msg.indexOf("]");
-
-                if (msg.substring(end + 1).trim().equalsIgnoreCase("exit"))
-                    break;
+                messagesSent++;
+                bytesSent += sendBuffer.length;
             }
 
             in.close();
