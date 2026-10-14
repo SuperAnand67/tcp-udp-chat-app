@@ -30,10 +30,9 @@ public class TCPClient {
 
         BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
 
-        System.out.print("Enter server IP: ");
-        String host = userIn.readLine();
+        String HOST = args[0];
         System.out.println("Connecting to Server....");
-        try(Socket socket = new Socket(host,PORT)) {
+        try(Socket socket = new Socket(HOST,PORT)) {
 
             System.out.println("Connected !");
             System.out.println("Type \"exit\" to Exit !");

@@ -11,6 +11,7 @@ public class App {
         Scanner in = new Scanner(System.in);
 
         System.out.println("Simple TCP/UDP Chat App");
+
         System.out.println("1. Start TCP Server");
         System.out.println("2. Start TCP Client");
         System.out.println("3. Start UDP Server");
@@ -18,16 +19,31 @@ public class App {
         System.out.println("5. Exit");
         System.out.print("Choose an Option : ");
         
-        int choice = in.nextInt();
+        int choice;
+        try {
+            choice = Integer.parseInt(in.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Please enter a number from 1 to 5.");
+            return;
+        }
 
-        switch(choice) {
-            case 1 -> TCPServer.main(new String[0]);
-            case 2 -> TCPClient.main(new String[0]);
-            case 3 -> UDPServer.main(new String[0]);
-            case 4 -> UDPClient.main(new String[0]);
-            case 5 -> System.exit(0);
+        in.nextLine();
 
-            default -> System.out.println("Invalid Option !");
+        switch (choice) {
+            case 1 -> TCPServer.main(new String[]{});
+            case 2 -> {
+                System.out.print("Enter server IP: ");
+                String ip = in.nextLine();
+                TCPClient.main(new String[]{ip});
+            }
+            case 3 -> UDPServer.main(new String[]{});
+            case 4 -> {
+                System.out.print("Enter server IP: ");
+                String ip = in.nextLine();
+                UDPClient.main(new String[]{ip});
+            }
+            case 5 -> System.out.println("Exiting...");
+            default -> System.out.println("Invalid choice!");
         }
     }
 }

@@ -26,8 +26,7 @@ public class UDPClient {
 
         Scanner in = new Scanner(System.in);
 
-        System.out.print("Enter server IP: ");
-        String host = in.nextLine();
+        String HOST = args[0];
 
         try (DatagramSocket socket = new DatagramSocket()) {
 
@@ -37,7 +36,7 @@ public class UDPClient {
 
             int count = 1;
 
-            InetAddress addr = InetAddress.getByName(host);
+            InetAddress addr = InetAddress.getByName(HOST);
 
             Thread reciever = new Thread(() -> {
                 try {
