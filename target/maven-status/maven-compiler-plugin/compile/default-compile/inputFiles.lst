@@ -1,3 +1,5 @@
-/mnt/745A71835A7142C2/Projects/chatapp/src/main/java/com/axiroren/TCP/Client.java
+/mnt/745A71835A7142C2/Projects/chatapp/src/main/java/com/axiroren/UDP/UDPClient.java
+/mnt/745A71835A7142C2/Projects/chatapp/src/main/java/com/axiroren/TCP/TCPServer.java
+/mnt/745A71835A7142C2/Projects/chatapp/src/main/java/com/axiroren/UDP/UDPServer.java
 /mnt/745A71835A7142C2/Projects/chatapp/src/main/java/com/axiroren/App.java
-/mnt/745A71835A7142C2/Projects/chatapp/src/main/java/com/axiroren/TCP/Server.java
+/mnt/745A71835A7142C2/Projects/chatapp/src/main/java/com/axiroren/TCP/TCPClient.java

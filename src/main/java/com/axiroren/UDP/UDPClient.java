@@ -17,7 +17,7 @@ public class UDPClient {
             Scanner in = new Scanner(System.in);
 
             InetAddress addr = InetAddress.getByName(HOST);
-            System.out.println("Connected to UDP Server at " + HOST + ":" + PORT);
+            //System.out.println("Connected to UDP Server at " + HOST + ":" + PORT);
 
             while (true) {
 
@@ -50,7 +50,7 @@ public class UDPClient {
                     recievePacket.getLength()
                 );
 
-                if (recieveMsg.equals("exit"))
+                if (recieveMsg.equalsIgnoreCase("exit"))
                     break;
 
                 System.out.println("Server : " + recieveMsg);
