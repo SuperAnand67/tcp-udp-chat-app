@@ -47,6 +47,8 @@ public class TCPClient {
                     String msg;
                     try {
                         while ((msg = input.readLine()) != null) {
+                            if(msg.equals("exit"))
+                                break;
                             messagesReceived.incrementAndGet();
                             bytesReceived.addAndGet(msg.getBytes(java.nio.charset.StandardCharsets.UTF_8).length);
                             System.out.println("\nServer : " + msg);
