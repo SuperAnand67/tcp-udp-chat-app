@@ -61,11 +61,6 @@ public class UDPClient {
                             java.nio.charset.StandardCharsets.UTF_8
                         );
 
-                        if (!recieveMsg.matches("\\[SEQ [1-9]\\d*\\] .*")) {
-                            System.out.println("[INVALID PACKET] Ignoring malformed message");
-                            continue;
-                        }
-
                         if (!recieveMsg.startsWith("ACK|")) {
                             messagesReceived.incrementAndGet();
                             bytesReceived.addAndGet(recievePacket.getLength());
@@ -88,6 +83,11 @@ public class UDPClient {
                                     rttMs
                                 );
                             }
+                            continue;
+                        }
+
+                        if (!recieveMsg.matches("\\[SEQ [1-9]\\d*\\] .*")) {
+                            System.out.println("[INVALID PACKET] Ignoring malformed message");
                             continue;
                         }
 
