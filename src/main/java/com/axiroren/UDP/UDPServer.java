@@ -111,6 +111,8 @@ public class UDPServer {
                     continue;
                 }
 
+                System.out.println("Start Chatting !");
+
                 //System.out.print("Enter msg : ");
                 String sendMsg = sc.nextLine();
 

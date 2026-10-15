@@ -1,12 +1,16 @@
 package com.axiroren.UDP;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class UDPClient {
 
@@ -33,12 +37,18 @@ public class UDPClient {
 
         Map<Integer, Long> pending = new ConcurrentHashMap<>();
 
+        Map<Integer, Boolean> diagnosticProbes = new ConcurrentHashMap<>();
+
+        List<Double> diagnoRtts = Collections.synchronizedList(new ArrayList<>());
+
+        AtomicInteger diagnoTimeouts = new AtomicInteger();
+
         final long ACK_TIMEOUT_NANOS = 2_000_000_000L;
 
         try (DatagramSocket socket = new DatagramSocket()) {
 
         System.out.println("Type \"exit\" to Exit !");
-        System.out.println("Type /stats for statistics !");
+        System.out.println("Available Commands : /stats, /diagnose, /simulateloss [0-100]");
         System.out.println("Start Chatting !");
 
             int count = 1;
@@ -76,6 +86,11 @@ public class UDPClient {
                             if (sentAt != null) {
                                 double rttMs =
                                     (System.nanoTime() - sentAt) / 1_000_000.0;
+
+                                if (diagnosticProbes.containsKey(ackSeq)) {
+                                    diagnoRtts.add(rttMs);
+                                    diagnosticProbes.remove(ackSeq);
+                                }
 
                                 System.out.printf(
                                     "\n[ACK] SEQ %d | RTT: %.3f ms%n",
@@ -119,8 +134,12 @@ public class UDPClient {
                     long now = System.nanoTime();
 
                     for (Map.Entry<Integer, Long> entry : pending.entrySet()) {
-                        if (now - entry.getValue() >= ACK_TIMEOUT_NANOS
-                                && pending.remove(entry.getKey(), entry.getValue())) {
+                        if (now - entry.getValue() >= ACK_TIMEOUT_NANOS && pending.remove(entry.getKey(), entry.getValue())) {
+
+                            if (diagnosticProbes.containsKey(entry.getKey())) {
+                                diagnoTimeouts.incrementAndGet();
+                                diagnosticProbes.remove(entry.getKey());
+                            }
 
                             System.out.println(
                                 "\n[TIMEOUT] SEQ " + entry.getKey()
@@ -149,6 +168,83 @@ public class UDPClient {
                 if (msg.equals("/stats")) {
                     stats(messagesSent, bytesSent, messagesReceived, bytesReceived);
                     continue;
+                }
+
+                if (msg.equals("/diagnose")) {
+                    final int probeCount = 10;
+
+                    diagnoRtts.clear();
+                    diagnoTimeouts.set(0);
+
+                    System.out.println("\n========== NETCHAT DIAGNOSE ==========");
+                    System.out.println("Sending " + probeCount + " UDP probes...");
+
+                    for (int i = 1; i <= probeCount; i++) {
+                        int probSeq = count++;
+
+                        String probMsg = "[SEQ " + probSeq + "] [DIAG] probe " + i;
+
+                        byte[] probBuffer = probMsg.getBytes();
+
+                        diagnosticProbes.put(probSeq, Boolean.TRUE);
+                        pending.put(probSeq, System.nanoTime());
+
+                        DatagramPacket probePacket = new DatagramPacket(
+                            probBuffer,
+                            probBuffer.length,
+                            addr,
+                            PORT
+                        );
+
+                        socket.send(probePacket);
+
+                        messagesSent++;
+                        bytesSent += probBuffer.length;
+
+                        try{
+                            Thread.sleep(50);
+                        } catch(InterruptedException e){
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+
+                        while (!diagnosticProbes.isEmpty()) {
+                            Thread.sleep(50);
+                        }
+
+                        int ackCount = diagnoRtts.size();
+                        int timeoutCount = diagnoTimeouts.get();
+
+                        double ackRate = ackCount * 100.0 / probeCount;
+
+                        System.out.println("\n========== DIAGNOSTIC REPORT ==========");
+                        System.out.println("Probes sent  : " + probeCount);
+                        System.out.println("ACKs received: " + ackCount);
+                        System.out.println("ACK timeouts : " + timeoutCount);
+                        System.out.printf("ACK rate     : %.1f%%%n", ackRate);
+
+                        if (ackCount > 0) {
+                            double min = Double.MAX_VALUE;
+                            double max = 0;
+                            double sum = 0;
+
+                            for(double rtt : diagnoRtts){
+                                min = Math.min(min, rtt);
+                                max = Math.max(max, rtt);
+
+                                sum += rtt;
+                            }
+
+                            System.out.printf("Min RTT      : %.3f ms%n", min);
+                            System.out.printf("Average RTT  : %.3f ms%n", sum / ackCount);
+                            System.out.printf("Max RTT      : %.3f ms%n", max);
+                        }
+                        else{
+                            System.out.println("No acknowledged probes; RTT unavailable.");
+                        }
+                        System.out.println("=======================================");
+                        continue;
+                    }
                 }
 
                 int seq = count++;
