@@ -9,6 +9,7 @@ public class TCPServer {
     static final int PORT = 8088;
 
     private static void stats(long messagesSent,long bytesSent, AtomicLong messagesReceived,AtomicLong bytesReceived){
+        System.out.println("========== Statistics ==========");
         System.out.println("Messages sent : " + messagesSent);
         System.out.println("Messages received : " + messagesReceived.get());
         System.out.println("Bytes sent : " + bytesSent);

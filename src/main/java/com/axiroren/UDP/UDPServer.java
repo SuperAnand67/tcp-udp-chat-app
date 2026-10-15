@@ -17,6 +17,7 @@ public class UDPServer {
     static volatile int clientPort = -1;
 
     private static void stats(long messagesSent,long bytesSent, AtomicLong messagesReceived,AtomicLong bytesReceived){
+        System.out.println("========== Statistics ==========");
         System.out.println("Messages sent : " + messagesSent);
         System.out.println("Messages received : " + messagesReceived.get());
         System.out.println("Bytes sent : " + bytesSent);
