@@ -40,13 +40,18 @@ public class App {
         System.out.println("========== NetChat - a TCP/UDP Chat App ==========");
         System.out.println("1. TCP");
         System.out.println("2. UDP");
-        System.out.print("Select Mode :");
+        System.out.print("Select Mode : ");
 
         int choice;
         try {
             choice = Integer.parseInt(in.nextLine().trim());
         } catch (NumberFormatException e) {
             System.out.println("Please Select Valid Mode !");
+            return;
+        }
+
+        if (choice != 1 && choice != 2) {
+            System.out.println("Please select TCP (1) or UDP (2).");
             return;
         }
 

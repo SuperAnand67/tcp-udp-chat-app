@@ -61,6 +61,11 @@ public class UDPClient {
                             java.nio.charset.StandardCharsets.UTF_8
                         );
 
+                        if (!recieveMsg.matches("\\[SEQ [1-9]\\d*\\] .*")) {
+                            System.out.println("[INVALID PACKET] Ignoring malformed message");
+                            continue;
+                        }
+
                         if (!recieveMsg.startsWith("ACK|")) {
                             messagesReceived.incrementAndGet();
                             bytesReceived.addAndGet(recievePacket.getLength());
@@ -146,15 +151,12 @@ public class UDPClient {
                     continue;
                 }
 
-                if (msg.equalsIgnoreCase("exit"))
-                    break;
-
                 int seq = count++;
                 msg = "[SEQ " + seq + "] " + msg;
 
-                //int end = msg.indexOf("]");
+                int end = msg.indexOf("]");
 
-                //String newMsg = msg.substring(end + 1).trim();
+                String newMsg = msg.substring(end + 1).trim();
 
                 byte[] sendBuffer = msg.getBytes(java.nio.charset.StandardCharsets.UTF_8);
 
@@ -168,6 +170,10 @@ public class UDPClient {
                 pending.put(seq, System.nanoTime());
 
                 socket.send(sendPacket);
+
+                if (newMsg.equalsIgnoreCase("exit"))
+                    break;
+
                 messagesSent++;
                 bytesSent += sendBuffer.length;
             }

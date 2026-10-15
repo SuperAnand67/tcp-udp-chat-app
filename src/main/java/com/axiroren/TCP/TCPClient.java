@@ -49,8 +49,10 @@ public class TCPClient {
                         while ((msg = input.readLine()) != null) {
                             if(msg.equals("exit"))
                                 break;
+
                             messagesReceived.incrementAndGet();
                             bytesReceived.addAndGet(msg.getBytes(java.nio.charset.StandardCharsets.UTF_8).length);
+                            
                             System.out.println("\nServer : " + msg);
                         }
                     } catch (IOException e) {
@@ -66,15 +68,18 @@ public class TCPClient {
                 //System.out.print("Enter msg : ");
                 String msg = userIn.readLine();
 
+                if (msg == null) break;
+
                 if (msg.equals("/stats")) {
                     stats(messagesSent, bytesSent, messagesReceived, bytesReceived);
                     continue;
                 }
 
-                if(msg.equals("exit"))
-                    break;
-
                 output.println(msg);
+
+                if(msg.equals("exit"))
+                    break;  
+
                 messagesSent++;
                 bytesSent += msg.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
             }

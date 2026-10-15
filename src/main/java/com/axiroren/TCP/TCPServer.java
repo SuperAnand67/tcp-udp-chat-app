@@ -38,6 +38,9 @@ public class TCPServer {
                 String msg;
                 try {
                     while ((msg = in.readLine()) != null) {
+
+                        if (msg.equalsIgnoreCase("exit")) break;
+
                         messagesReceived.incrementAndGet();
                         bytesReceived.addAndGet(
                             msg.getBytes(java.nio.charset.StandardCharsets.UTF_8).length

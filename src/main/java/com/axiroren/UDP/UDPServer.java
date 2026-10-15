@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class UDPServer {
 
     static final int PORT = 8088;
-    private static final int LOSS_PERCENT = 20;
+    private static volatile int lossPercent = 10;
 
     static volatile InetAddress clientAddr;
     static volatile int clientPort = -1;
@@ -48,14 +48,14 @@ public class UDPServer {
 
                         socket.receive(recievePacket);
 
-                        messagesReceived.incrementAndGet();
-                        bytesReceived.addAndGet(recievePacket.getLength());
-
                         String recievedMsg = new String(
                                 recievePacket.getData(),
                                 0,
                                 recievePacket.getLength(),
                                 java.nio.charset.StandardCharsets.UTF_8);
+
+                        messagesReceived.incrementAndGet();
+                        bytesReceived.addAndGet(recievePacket.getLength());
 
                         int start = recievedMsg.indexOf("SEQ ") + 4;
                         int end = recievedMsg.indexOf("]");
@@ -65,22 +65,22 @@ public class UDPServer {
 
                         String msg = recievedMsg.substring(end + 1).trim();
 
-                        if (ThreadLocalRandom.current().nextInt(100) < LOSS_PERCENT) {
+                        if (msg.equalsIgnoreCase("exit"))
+                            break;
+
+                        clientAddr = recievePacket.getAddress();
+                        clientPort = recievePacket.getPort();
+
+                        clientReady.countDown();
+
+                        if (ThreadLocalRandom.current().nextInt(100) < lossPercent) {
                             System.out.println(
                                 "\n[SIMULATED DROP] Discarded client SEQ " + seq
                             );
                             continue;
                         }
 
-                        if (msg.equalsIgnoreCase("exit"))
-                            break;
-
                         System.out.println("\nClient " + "[SEQ " + seq + "] : " + msg);
-
-                        clientAddr = recievePacket.getAddress();
-                        clientPort = recievePacket.getPort();
-
-                        clientReady.countDown();
 
                         byte[] ack = ("ACK|" + seq).getBytes(
                             java.nio.charset.StandardCharsets.UTF_8
@@ -121,6 +121,32 @@ public class UDPServer {
 
                 if (sendMsg.equalsIgnoreCase("exit"))
                     break;
+
+                java.util.regex.Matcher matcher = java.util.regex.Pattern
+                        .compile("/simulateloss\\s+(\\d+)")
+                        .matcher(sendMsg);
+
+                if (matcher.matches()) {
+                    try{
+                        int percent = Integer.parseInt(matcher.group(1));
+
+                        if (percent < 0 || percent > 100) {
+                            System.out.println("Usage: /simulateloss <0-100>");
+                            continue;
+                        }
+
+                        lossPercent = percent;
+                        System.out.println("Simulated packet loss set to " + lossPercent + "%");
+                        continue;
+                    } catch (NumberFormatException e) {
+                        System.out.println("Usage: /simulateloss <0-100>");
+                    } 
+                }
+
+                if (sendMsg.startsWith("/simulateloss")) {
+                    System.out.println("Usage: /simulateloss <0-100>");
+                    continue;
+                }
 
                 sendMsg = "[SEQ " + (count++) + "] " + sendMsg;
 
