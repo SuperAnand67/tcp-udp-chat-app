@@ -24,7 +24,7 @@ public class UDPServer {
         System.out.println("Bytes received : " + bytesReceived.get());
     }
 
-    public static void main(String[] args) {
+    public static void startServer() {
 
         long messagesSent = 0;
         AtomicLong messagesReceived = new AtomicLong();
@@ -126,19 +126,19 @@ public class UDPServer {
                 //System.out.print("Enter msg : ");
                 String sendMsg = sc.nextLine();
 
-                sendMsg = "[SEQ " + (count++) + "] " + sendMsg;
-
-                int end = sendMsg.indexOf("]");
-
-                String newMsg = sendMsg.substring(end + 1).trim();
-
-                if (newMsg.equals("/stats")) {
+                if (sendMsg.equals("/stats")) {
                     stats(messagesSent, bytesSent, messagesReceived, bytesReceived);
                     continue;
                 }
 
-                if (newMsg.equalsIgnoreCase("exit"))
+                if (sendMsg.equalsIgnoreCase("exit"))
                     break;
+
+                sendMsg = "[SEQ " + (count++) + "] " + sendMsg;
+
+                //int end = sendMsg.indexOf("]");
+
+                //String newMsg = sendMsg.substring(end + 1).trim();
 
                 byte[] sendBuffer = sendMsg.getBytes(java.nio.charset.StandardCharsets.UTF_8);
 

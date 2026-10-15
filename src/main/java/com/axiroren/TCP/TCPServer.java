@@ -16,7 +16,7 @@ public class TCPServer {
         System.out.println("Bytes received : " + bytesReceived.get());
     }
 
-    public static void main(String[] args) {
+    public static void startServer() {
 
     long messagesSent = 0;
     long bytesSent = 0;
@@ -64,8 +64,6 @@ public class TCPServer {
                     stats(messagesSent, bytesSent, messagesReceived, bytesReceived);
                     continue;
                 }
-
-                
 
                 out.println(msg);
                 messagesSent++;

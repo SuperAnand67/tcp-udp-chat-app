@@ -7,40 +7,67 @@ import com.axiroren.TCP.*;
 import com.axiroren.UDP.*;
 
 public class App {
+
+    private static Scanner in = new Scanner(System.in);
+
+    private static void startServer(int choice){
+
+        switch(choice){
+            case 1 -> TCPServer.startServer();
+            case 2 -> UDPServer.startServer();
+
+            default -> System.out.println("Invalid choice!");
+        }
+
+    }
+
+    private static void startClient(int choice) throws IOException{
+        System.out.print("Enter server IP: ");
+        String ip = in.nextLine();
+        ip = ip.trim();
+
+        switch(choice){
+            case 1 -> TCPClient.startClient(ip);
+            case 2 -> UDPClient.startClient(ip);
+
+            default -> System.out.println("Invalid choice!");
+        }
+
+    }
+
     public static void main( String[] args ) throws IOException {
-        Scanner in = new Scanner(System.in);
 
-        System.out.println("Simple TCP/UDP Chat App");
+        System.out.println("========== NetChat - a TCP/UDP Chat App ==========");
+        System.out.println("1. TCP");
+        System.out.println("2. UDP");
+        System.out.print("Select Mode :");
 
-        System.out.println("1. Start TCP Server");
-        System.out.println("2. Start TCP Client");
-        System.out.println("3. Start UDP Server");
-        System.out.println("4. Start UDP Client");
-        System.out.println("5. Exit");
-        System.out.print("Choose an Option : ");
-        
         int choice;
         try {
             choice = Integer.parseInt(in.nextLine().trim());
         } catch (NumberFormatException e) {
-            System.out.println("Please enter a number from 1 to 5.");
+            System.out.println("Please Select Valid Mode !");
             return;
         }
 
-        switch (choice) {
-            case 1 -> TCPServer.main(new String[]{});
-            case 2 -> {
-                System.out.print("Enter server IP: ");
-                String ip = in.nextLine();
-                TCPClient.main(new String[]{ip});
-            }
-            case 3 -> UDPServer.main(new String[]{});
-            case 4 -> {
-                System.out.print("Enter server IP: ");
-                String ip = in.nextLine();
-                UDPClient.main(new String[]{ip});
-            }
-            case 5 -> System.out.println("Exiting...");
+        System.out.println("1. Start Server");
+        System.out.println("2. Start Client");
+        System.out.println("3. Exit");
+        System.out.print("Choose an Option : ");
+        
+        int ch;
+        try {
+            ch = Integer.parseInt(in.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Please Select Valid Mode !");
+            return;
+        }
+
+        switch (ch) {
+            case 1 -> startServer(choice);
+            case 2 -> startClient(choice);
+            case 3 -> System.out.println("Exiting...");
+
             default -> System.out.println("Invalid choice!");
         }
     }

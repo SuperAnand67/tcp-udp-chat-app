@@ -22,7 +22,7 @@ public class TCPClient {
         System.out.println("Bytes received : " + bytesReceived.get());
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void startClient(String HOST) throws IOException {
 
         long messagesSent = 0;
         AtomicLong messagesReceived = new AtomicLong();
@@ -31,7 +31,7 @@ public class TCPClient {
 
         BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
 
-        String HOST = args[0];
+        //String HOST = args[0];
         System.out.println("Connecting to Server....");
         try(Socket socket = new Socket(HOST,PORT)) {
 

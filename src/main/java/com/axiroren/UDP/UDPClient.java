@@ -20,7 +20,7 @@ public class UDPClient {
         System.out.println("Bytes received : " + bytesReceived.get());
     }
 
-    public static void main(String[] args) {
+    public static void startClient(String HOST) {
 
         long messagesSent = 0;
         AtomicLong messagesReceived = new AtomicLong();
@@ -29,7 +29,7 @@ public class UDPClient {
 
         Scanner in = new Scanner(System.in);
 
-        String HOST = args[0];
+        //String HOST = HOST;
 
         Map<Integer, Long> pending = new ConcurrentHashMap<>();
 
@@ -80,7 +80,6 @@ public class UDPClient {
                                     rttMs
                                 );
                             }
-
                             continue;
                         }
 
@@ -139,20 +138,20 @@ public class UDPClient {
                 //System.out.print("Enter msg : ");
                 String msg = in.nextLine();
 
-                int seq = count++;
-                msg = "[SEQ " + seq + "] " + msg;
-
-                int end = msg.indexOf("]");
-
-                String newMsg = msg.substring(end + 1).trim();
-
-                if (newMsg.equals("/stats")) {
+                if (msg.equals("/stats")) {
                     stats(messagesSent, bytesSent, messagesReceived, bytesReceived);
                     continue;
                 }
 
-                if (newMsg.equalsIgnoreCase("exit"))
+                if (msg.equalsIgnoreCase("exit"))
                     break;
+
+                int seq = count++;
+                msg = "[SEQ " + seq + "] " + msg;
+
+                //int end = msg.indexOf("]");
+
+                //String newMsg = msg.substring(end + 1).trim();
 
                 byte[] sendBuffer = msg.getBytes(java.nio.charset.StandardCharsets.UTF_8);
 
