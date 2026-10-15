@@ -207,6 +207,7 @@ public class UDPClient {
                             Thread.currentThread().interrupt();
                             break;
                         }
+                    }
 
                         while (!diagnosticProbes.isEmpty()) {
                             Thread.sleep(50);
@@ -245,7 +246,6 @@ public class UDPClient {
                         System.out.println("=======================================");
                         continue;
                     }
-                }
 
                 int seq = count++;
                 msg = "[SEQ " + seq + "] " + msg;

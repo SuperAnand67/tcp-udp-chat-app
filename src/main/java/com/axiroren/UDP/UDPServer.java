@@ -35,6 +35,8 @@ public class UDPServer {
 
         try (DatagramSocket socket = new DatagramSocket(PORT)) {
 
+            System.out.println("Start Chatting !");
+
             int count = 1;
 
             Scanner sc = new Scanner(System.in);
@@ -110,8 +112,6 @@ public class UDPServer {
                     clientReady.await();
                     continue;
                 }
-
-                System.out.println("Start Chatting !");
 
                 //System.out.print("Enter msg : ");
                 String sendMsg = sc.nextLine();
