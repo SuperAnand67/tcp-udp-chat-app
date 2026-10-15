@@ -6,10 +6,12 @@ import java.net.InetAddress;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class UDPServer {
 
     static final int PORT = 8088;
+    private static final int LOSS_PERCENT = 20;
 
     static volatile InetAddress clientAddr;
     static volatile int clientPort = -1;
@@ -38,6 +40,7 @@ public class UDPServer {
 
             Thread reciever = new Thread(() -> {
                 try {
+                    int lastSeq = 0;
                     while (true) {
                         byte[] recieve = new byte[1024];
 
@@ -60,7 +63,25 @@ public class UDPServer {
                         int seq = Integer.parseInt(
                                 recievedMsg.substring(start, end).trim());
 
+                        if (seq > lastSeq + 1) {
+                            System.out.println(
+                                "⚠️ Possible packet loss! Missing sequence numbers: "
+                                + (lastSeq + 1) + " to " + (seq - 1)
+                            );
+                        }
+
+                        if (seq > lastSeq) {
+                            lastSeq = seq;
+                        }
+
                         String msg = recievedMsg.substring(end + 1).trim();
+
+                        if (ThreadLocalRandom.current().nextInt(100) < LOSS_PERCENT) {
+                            System.out.println(
+                                "\n[SIMULATED DROP] Discarded client SEQ " + seq
+                            );
+                            continue;
+                        }
 
                         if (msg.equalsIgnoreCase("exit"))
                             break;
@@ -71,6 +92,19 @@ public class UDPServer {
                         clientPort = recievePacket.getPort();
 
                         clientReady.countDown();
+
+                        byte[] ack = ("ACK|" + seq).getBytes(
+                            java.nio.charset.StandardCharsets.UTF_8
+                        );
+
+                        DatagramPacket ackPacket = new DatagramPacket(
+                            ack,
+                            ack.length,
+                            clientAddr,
+                            clientPort
+                        );
+
+                        socket.send(ackPacket);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

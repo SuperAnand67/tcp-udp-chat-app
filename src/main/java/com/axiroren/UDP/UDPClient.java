@@ -1,5 +1,7 @@
 package com.axiroren.UDP;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -11,6 +13,7 @@ public class UDPClient {
     static final int PORT = 8088;
 
     private static void stats(long messagesSent,long bytesSent, AtomicLong messagesReceived,AtomicLong bytesReceived){
+        System.out.println("========== Statistics ==========");
         System.out.println("Messages sent : " + messagesSent);
         System.out.println("Messages received : " + messagesReceived.get());
         System.out.println("Bytes sent : " + bytesSent);
@@ -27,6 +30,10 @@ public class UDPClient {
         Scanner in = new Scanner(System.in);
 
         String HOST = args[0];
+
+        Map<Integer, Long> pending = new ConcurrentHashMap<>();
+
+        final long ACK_TIMEOUT_NANOS = 2_000_000_000L;
 
         try (DatagramSocket socket = new DatagramSocket()) {
 
@@ -56,6 +63,27 @@ public class UDPClient {
                             java.nio.charset.StandardCharsets.UTF_8
                         );
 
+                        if (recieveMsg.startsWith("ACK|")) {
+                            int ackSeq = Integer.parseInt(
+                                recieveMsg.substring(4).trim()
+                            );
+
+                            Long sentAt = pending.remove(ackSeq);
+
+                            if (sentAt != null) {
+                                double rttMs =
+                                    (System.nanoTime() - sentAt) / 1_000_000.0;
+
+                                System.out.printf(
+                                    "\n[ACK] SEQ %d | RTT: %.3f ms%n",
+                                    ackSeq,
+                                    rttMs
+                                );
+                            }
+
+                            continue;
+                        }
+
                         int start = recieveMsg.indexOf("SEQ ") + 4;
                         int end = recieveMsg.indexOf("]");
 
@@ -79,12 +107,40 @@ public class UDPClient {
             reciever.setDaemon(true);
             reciever.start();
 
+            Thread timeoutWatcher = new Thread(() -> {
+                while (!socket.isClosed()) {
+                    long now = System.nanoTime();
+
+                    for (Map.Entry<Integer, Long> entry : pending.entrySet()) {
+                        if (now - entry.getValue() >= ACK_TIMEOUT_NANOS
+                                && pending.remove(entry.getKey(), entry.getValue())) {
+
+                            System.out.println(
+                                "\n[TIMEOUT] SEQ " + entry.getKey()
+                                + " received no ACK. Possible packet loss."
+                            );
+                        }
+                    }
+
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }, "udp-timeout-watcher");
+
+            timeoutWatcher.setDaemon(true);
+            timeoutWatcher.start();
+
             while (true) {
 
                 //System.out.print("Enter msg : ");
                 String msg = in.nextLine();
 
-                msg = "[SEQ " + (count++) + "] " + msg;
+                int seq = count++;
+                msg = "[SEQ " + seq + "] " + msg;
 
                 int end = msg.indexOf("]");
 
@@ -106,6 +162,8 @@ public class UDPClient {
                     addr,
                     PORT
                 );
+
+                pending.put(seq, System.nanoTime());
 
                 socket.send(sendPacket);
                 messagesSent++;
