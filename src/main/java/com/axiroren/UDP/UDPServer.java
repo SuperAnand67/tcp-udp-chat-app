@@ -17,7 +17,7 @@ public class UDPServer {
     static volatile int clientPort = -1;
 
     private static void stats(long messagesSent,long bytesSent, AtomicLong messagesReceived,AtomicLong bytesReceived){
-        System.out.println("========== Statistics ==========");
+        System.out.println("\n========== Statistics ==========");
         System.out.println("Messages sent : " + messagesSent);
         System.out.println("Messages received : " + messagesReceived.get());
         System.out.println("Bytes sent : " + bytesSent);
@@ -41,7 +41,6 @@ public class UDPServer {
 
             Thread reciever = new Thread(() -> {
                 try {
-                    int lastSeq = 0;
                     while (true) {
                         byte[] recieve = new byte[1024];
 
@@ -63,17 +62,6 @@ public class UDPServer {
 
                         int seq = Integer.parseInt(
                                 recievedMsg.substring(start, end).trim());
-
-                        if (seq > lastSeq + 1) {
-                            System.out.println(
-                                "⚠️ Possible packet loss! Missing sequence numbers: "
-                                + (lastSeq + 1) + " to " + (seq - 1)
-                            );
-                        }
-
-                        if (seq > lastSeq) {
-                            lastSeq = seq;
-                        }
 
                         String msg = recievedMsg.substring(end + 1).trim();
 

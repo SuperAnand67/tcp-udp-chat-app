@@ -13,7 +13,7 @@ public class UDPClient {
     static final int PORT = 8088;
 
     private static void stats(long messagesSent,long bytesSent, AtomicLong messagesReceived,AtomicLong bytesReceived){
-        System.out.println("========== Statistics ==========");
+        System.out.println("\n========== Statistics ==========");
         System.out.println("Messages sent : " + messagesSent);
         System.out.println("Messages received : " + messagesReceived.get());
         System.out.println("Bytes sent : " + bytesSent);
@@ -53,8 +53,6 @@ public class UDPClient {
                         DatagramPacket recievePacket = new DatagramPacket(recieve, recieve.length);
 
                         socket.receive(recievePacket);
-                        messagesReceived.incrementAndGet();
-                        bytesReceived.addAndGet(recievePacket.getLength());
 
                         String recieveMsg = new String(
                             recievePacket.getData(),
@@ -62,6 +60,11 @@ public class UDPClient {
                             recievePacket.getLength(),
                             java.nio.charset.StandardCharsets.UTF_8
                         );
+
+                        if (!recieveMsg.startsWith("ACK|")) {
+                            messagesReceived.incrementAndGet();
+                            bytesReceived.addAndGet(recievePacket.getLength());
+                        }
 
                         if (recieveMsg.startsWith("ACK|")) {
                             int ackSeq = Integer.parseInt(
