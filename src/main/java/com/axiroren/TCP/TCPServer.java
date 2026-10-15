@@ -39,6 +39,12 @@ public class TCPServer {
                 try {
                     while ((msg = in.readLine()) != null) {
 
+                        if (msg.startsWith("__DIAG__:")) {
+                            String id = msg.substring("__DIAG__:".length());
+                            out.println("__DIAG_REPLY__:" + id);
+                            continue;
+                        }
+
                         if (msg.equalsIgnoreCase("exit")) break;
 
                         messagesReceived.incrementAndGet();

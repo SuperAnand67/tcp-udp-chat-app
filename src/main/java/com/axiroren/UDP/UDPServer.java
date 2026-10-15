@@ -35,8 +35,6 @@ public class UDPServer {
 
         try (DatagramSocket socket = new DatagramSocket(PORT)) {
 
-            System.out.println("Start Chatting !");
-
             int count = 1;
 
             Scanner sc = new Scanner(System.in);

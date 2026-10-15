@@ -47,9 +47,9 @@ public class UDPClient {
 
         try (DatagramSocket socket = new DatagramSocket()) {
 
-        System.out.println("Type \"exit\" to Exit !");
-        System.out.println("Available Commands : /stats, /diagnose, /simulateloss [0-100]");
-        System.out.println("Start Chatting !");
+            System.out.println("Type \"exit\" to Exit !");
+            System.out.println("Available Commands : /stats, /diagnose, /simulateloss [0-100]");
+            System.out.println("Start Chatting !");
 
             int count = 1;
 
